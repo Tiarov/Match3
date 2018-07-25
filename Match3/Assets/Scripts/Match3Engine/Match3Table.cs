@@ -33,13 +33,50 @@ namespace Assets.Scripts.Match3Engine
 
             if (Mathf.Abs(x1 - x2) == 1 && Mathf.Abs(y1 - y2) == 1 || Mathf.Abs(x1 - x2) > 1 || Mathf.Abs(y1 - y2) > 1)
                 return false;
-
+            
             Table[x1, y1] = m2;
-            m2.ChangeCoordinates(x1, y1);
             Table[x2, y2] = m1;
+
+            if (!IsMatch3(m2.Index, x1, y1) && !IsMatch3(m1.Index, x2, y2))
+            {
+                Table[x1, y1] = m1;
+                Table[x2, y2] = m2;
+
+                return false;
+            }
+
+            m2.ChangeCoordinates(x1, y1);
             m1.ChangeCoordinates(x2, y2);
 
             return true;
+        }
+
+        //New Method for check of MAtch3
+        private bool IsMatch3(int index, int x, int y)
+        {
+            var leftSide = RecursiveCheck(index, -1, x, y);
+            var rigthSide = RecursiveCheck(index, 1, x, y);
+            var topSide = RecursiveCheck(index, 1, x, y, false);
+            var bottomSide = RecursiveCheck(index, -1, x, y, false);
+
+            return leftSide + rigthSide >= 2 || topSide + bottomSide >= 2;
+        }
+
+        private int RecursiveCheck(int index, int side, int x, int y, bool row = true)
+        {
+            if (row)
+                x += side;
+            else
+                y += side;
+
+            if (x >= 0 && x < XCount && y >= 0 && y < YCount && Table[x, y].Index == index)
+            {
+                var result = 1;
+                result += RecursiveCheck(index, side, x, y, row);
+                return result;
+            }
+
+            return 0;
         }
 
         public bool TryCleanTiles(List<Match3TileModel> executeList)
